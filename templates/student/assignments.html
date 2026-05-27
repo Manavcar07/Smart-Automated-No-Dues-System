@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignments | SISTec No Dues</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard">
+    <div class="container">
+        <header class="compact-topbar">
+            <a href="/units/{{ subject_id }}" class="back-btn">Back</a>
+            <h2>Assignments</h2>
+            <a href="/logout" class="btn-danger">Logout</a>
+        </header>
+
+        <section class="page-header">
+            <div>
+                <h1>Your Assignments</h1>
+                <p>Upload PDF solutions and track faculty approval.</p>
+            </div>
+        </section>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert">{{ messages[0] }}</div>
+            {% endif %}
+        {% endwith %}
+
+        {% if assignments|length == 0 %}
+            <section class="empty-state">
+                <h2>No Assignments Available</h2>
+                <p>Please check again later.</p>
+            </section>
+        {% else %}
+            <section class="grid">
+                {% for a in assignments %}
+                <article class="item-card">
+                    <h3>{{ a['title'] }}</h3>
+
+                    <div class="action-row" style="margin:14px 0;">
+                        {% if a['file_path'] %}
+                        <a href="/uploads/{{ a['file_path'] }}" target="_blank" class="btn-secondary">View Assignment</a>
+                        {% endif %}
+
+                        {% if a['submission_status'] == 'approved' %}
+                            <span class="status approved">Approved</span>
+                        {% elif a['submission_status'] == 'pending' %}
+                            <span class="status pending">Pending Review</span>
+                        {% elif a['submission_status'] == 'rejected' %}
+                            <span class="status rejected">Rejected</span>
+                        {% else %}
+                            <span class="status not">Not Submitted</span>
+                        {% endif %}
+                    </div>
+
+                    {% if a['submission_status'] != 'approved' %}
+                    <form action="/upload" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="assignment_id" value="{{ a['id'] }}">
+                        <div class="form-group">
+                            <label for="file_{{ a['id'] }}">Upload solution PDF</label>
+                            <input id="file_{{ a['id'] }}" type="file" name="file" required>
+                        </div>
+                        <button class="upload-btn">Upload Solution</button>
+                    </form>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </section>
+        {% endif %}
+    </div>
+</body>
+</html>

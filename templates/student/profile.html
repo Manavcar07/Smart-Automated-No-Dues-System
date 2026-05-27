@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | SISTec No Dues</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard">
+    <aside class="sidebar">
+        <h2>Maxdue-Hub<span>Student portal</span></h2>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/profile" class="active">My Profile</a>
+        <a href="/subjects">Subjects</a>
+        <a href="/change_password">Password</a>
+        <a href="/logout" class="logout">Logout</a>
+    </aside>
+
+    <main class="main">
+        <div class="page-header">
+            <div>
+                <h1>My Profile</h1>
+                <p>Student details and profile photo.</p>
+            </div>
+        </div>
+
+        <section class="profile-grid">
+            <article class="panel">
+                <h2>Profile Photo</h2>
+                <p class="panel-subtitle">Upload a square photo for the dashboard avatar.</p>
+                <img src="{{ url_for('static', filename='user_' ~ session['user_id'] ~ '.jpg') }}" onerror="this.src='{{ url_for('static', filename='user_32.jpg') }}'" class="profile-img" alt="Profile photo">
+
+                <form action="/upload_profile" method="POST" enctype="multipart/form-data" style="margin-top:18px;">
+                    <div class="form-group">
+                        <label for="photo">Choose photo</label>
+                        <input id="photo" type="file" name="photo" required>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn-primary">Upload</button>
+                        <a href="/remove_profile" class="btn-danger">Remove Photo</a>
+                    </div>
+                </form>
+            </article>
+
+            <article class="panel">
+                <h2>Student Details</h2>
+                <p class="panel-subtitle">Official academic information.</p>
+                <div class="detail-list">
+                    <div class="detail-item"><span>Name</span><strong>{{ user['name'] }}</strong></div>
+                    <div class="detail-item"><span>Enrollment</span><strong>{{ user['enrollment'] }}</strong></div>
+                    <div class="detail-item"><span>Department</span><strong>{{ user['dept'] }}</strong></div>
+                    <div class="detail-item"><span>Semester</span><strong>{{ user['semester'] }}</strong></div>
+                    <div class="detail-item"><span>Year</span><strong>{{ user['year'] }}</strong></div>
+                    <div class="detail-item"><span>Degree</span><strong>{{ user['degree'] }}</strong></div>
+                    <div class="detail-item"><span>Passing Year</span><strong>{{ user['passing_year'] }}</strong></div>
+                </div>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

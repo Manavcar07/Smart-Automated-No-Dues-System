@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Profile | SISTec No Dues</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard">
+    <aside class="sidebar">
+        <h2>Maxdue-Hub<span>Faculty portal</span></h2>
+        <a href="/faculty_dashboard">Dashboard</a>
+        <a href="/faculty_profile" class="active">Profile</a>
+        <a href="/faculty/attendance">Attendance</a>
+        <a href="/logout" class="logout">Logout</a>
+    </aside>
+
+    <main class="main">
+        <div class="page-header">
+            <div>
+                <h1>Faculty Profile</h1>
+                <p>Keep faculty contact details updated.</p>
+            </div>
+        </div>
+
+        <section class="form-card">
+            <form method="POST" action="/update_faculty_profile">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input id="name" type="text" name="name" value="{{ faculty['name'] }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" name="email" value="{{ faculty['email'] }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <input id="department" type="text" name="department" value="{{ faculty['department'] }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input id="phone" type="text" name="phone" value="{{ faculty['phone'] }}" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Update Profile</button>
+                    <a href="/faculty_dashboard" class="btn-secondary">Back to Dashboard</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

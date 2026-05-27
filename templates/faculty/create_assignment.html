@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Assignment | SISTec No Dues</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard">
+    <aside class="sidebar">
+        <h2>Maxdue-Hub<span>Faculty portal</span></h2>
+        <a href="/faculty_dashboard">Dashboard</a>
+        <a href="/faculty_profile">Profile</a>
+        <a href="/faculty/attendance">Attendance</a>
+        <a href="/logout" class="logout">Logout</a>
+    </aside>
+
+    <main class="main">
+        <div class="page-header">
+            <div>
+                <h1>Create Assignment</h1>
+                <p>Upload an assignment PDF for the selected unit.</p>
+            </div>
+        </div>
+
+        <section class="form-card">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="title">Assignment title</label>
+                    <input id="title" type="text" name="title" placeholder="Enter assignment title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="file">Assignment PDF</label>
+                    <input id="file" type="file" name="file" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Upload Assignment</button>
+                    <a href="/faculty_dashboard" class="btn-secondary">Back</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

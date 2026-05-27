@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>No Dues Check | SISTec No Dues</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard">
+    <div class="container">
+        <header class="compact-topbar">
+            <a href="/subjects" class="back-btn">Back</a>
+            <h2>No Dues Check</h2>
+            <a href="/logout" class="btn-danger">Logout</a>
+        </header>
+
+        <section class="table-box">
+            <div class="table-header">Assignment Clearance</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Assignment</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for title, cleared in result %}
+                    <tr>
+                        <td>{{ title }}</td>
+                        <td>
+                            {% if cleared %}
+                                <span class="status approved">Cleared</span>
+                            {% else %}
+                                <span class="status pending">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </div>
+</body>
+</html>

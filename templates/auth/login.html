@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | SISTec No Dues</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="auth-screen">
+    <section class="auth-info">
+        <div class="auth-brand">
+            <div class="brand-logo">ND</div>
+            <div>
+                SISTec No Dues
+                <div>Academic clearance portal</div>
+            </div>
+        </div>
+
+        <div class="auth-copy">
+            <h1>Clearance, assignments, and attendance in one place.</h1>
+            <p>Students can track progress and faculty can manage submissions without switching between files and registers.</p>
+        </div>
+
+        <div class="auth-stat-row">
+            <div class="auth-stat">
+                <strong>60%</strong>
+                <span>Attendance gate</span>
+            </div>
+            <div class="auth-stat">
+                <strong>5</strong>
+                <span>Units per subject</span>
+            </div>
+            <div class="auth-stat">
+                <strong>PDF</strong>
+                <span>Submission flow</span>
+            </div>
+        </div>
+    </section>
+
+    <main class="auth-form-wrap">
+        <section class="auth-panel">
+            <h2>Welcome back</h2>
+            <p>Login as student or faculty using your assigned ID.</p>
+
+            <form method="POST" action="/login">
+                <div class="form-group">
+                    <label for="username">Username or Faculty ID</label>
+                    <input id="username" type="text" name="username" placeholder="Example: F101" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" name="password" placeholder="Enter password" required>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width:100%;">Login</button>
+            </form>
+
+            <div class="auth-links">
+                <span>Need help?</span>
+                <a href="/forgot_password">Reset password</a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

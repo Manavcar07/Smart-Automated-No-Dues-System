@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Units | SISTec No Dues</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard">
+    <div class="container">
+        <header class="compact-topbar">
+            <a href="/subjects" class="back-btn">Back</a>
+            <h2>Units</h2>
+            <a href="/logout" class="btn-danger">Logout</a>
+        </header>
+
+        <section class="page-header">
+            <div>
+                <h1>Select Unit</h1>
+                <p>Choose a unit to see available assignments.</p>
+            </div>
+        </section>
+
+        <section class="grid">
+            {% for unit in units %}
+            <article class="item-card">
+                <span class="badge">Unit</span>
+                <h3 style="margin-top:14px;">{{ unit['name'] }}</h3>
+                <p>Assignment list and submission status</p>
+                <div class="form-actions">
+                    <a href="/assignments/{{ unit['id'] }}" class="open-btn">Open Assignments</a>
+                </div>
+            </article>
+            {% endfor %}
+        </section>
+    </div>
+</body>
+</html>

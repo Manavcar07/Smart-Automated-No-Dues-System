@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance | SISTec No Dues</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard">
+    <aside class="sidebar">
+        <h2>Maxdue-Hub<span>Faculty portal</span></h2>
+        <a href="/faculty_dashboard">Dashboard</a>
+        <a href="/faculty_profile">Profile</a>
+        <a href="/faculty/attendance" class="active">Attendance</a>
+        <a href="/logout" class="logout">Logout</a>
+    </aside>
+
+    <main class="main">
+        <div class="page-header">
+            <div>
+                <h1>Update Attendance</h1>
+                <p>Set attendance percentage for any student.</p>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for msg in messages %}
+                    <div class="alert">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="form-card">
+            <form method="POST">
+                <div class="form-group">
+                    <label for="student_id">Select student</label>
+                    <select id="student_id" name="student_id" required>
+                        {% for s in students %}
+                        <option value="{{ s.id }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="attendance">Attendance %</label>
+                    <input id="attendance" type="number" name="attendance" min="0" max="100" required placeholder="Enter attendance">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Update Attendance</button>
+                    <a href="/faculty_dashboard" class="btn-secondary">Back</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

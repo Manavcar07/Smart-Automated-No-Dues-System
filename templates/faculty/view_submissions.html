@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Submissions | SISTec No Dues</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard">
+    <aside class="sidebar">
+        <h2>Maxdue-Hub<span>Faculty portal</span></h2>
+        <a href="/faculty_dashboard">Dashboard</a>
+        <a href="/faculty_profile">Profile</a>
+        <a href="/faculty/attendance">Attendance</a>
+        <a href="/logout" class="logout">Logout</a>
+    </aside>
+
+    <main class="main">
+        <div class="page-header">
+            <div>
+                <h1>Student Submissions</h1>
+                <p>Open submitted files and mark final approval status.</p>
+            </div>
+            <a href="/faculty_dashboard" class="back-btn">Back</a>
+        </div>
+
+        {% if submissions|length == 0 %}
+            <section class="empty-state">
+                <h2>No Submissions Yet</h2>
+                <p>Students have not submitted this assignment yet.</p>
+            </section>
+        {% else %}
+            <section class="assignment-container">
+                {% for s in submissions %}
+                <article class="assignment-card">
+                    <div class="assignment-info">
+                        <h3>{{ s.name }}</h3>
+                        <p>AI Suggestion: {{ s.ai_status if s.ai_status else 'Not available' }}</p>
+                        {% if s.status == "approved" %}
+                            <span class="status approved">Final Status: Approved</span>
+                        {% elif s.status == "pending" %}
+                            <span class="status pending">Final Status: Pending</span>
+                        {% else %}
+                            <span class="status rejected">Final Status: Rejected</span>
+                        {% endif %}
+                    </div>
+                    <div class="assignment-actions">
+                        <a href="/view_submission_file/{{ s.file_path }}" target="_blank" class="btn-primary">View File</a>
+                        <a href="/approve/{{ s.id }}" class="btn-success">Approve</a>
+                        <a href="/reject/{{ s.id }}" class="btn-danger">Reject</a>
+                    </div>
+                </article>
+                {% endfor %}
+            </section>
+        {% endif %}
+    </main>
+</body>
+</html>

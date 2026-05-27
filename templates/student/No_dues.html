@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>No Dues Certificate | SISTec</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="certificate-page">
+    <main class="certificate-doc">
+        <header class="certificate-top">
+            <img src="/static/sistec_logo.png" alt="SISTec logo">
+            <h1>No Dues Certificate</h1>
+            <h2>Sagar Institute of Science and Technology</h2>
+            <p>Gandhi Nagar, Bhopal (M.P.)</p>
+            <span class="badge">Certificate ID: ND-{{ user.id }}-2026</span>
+        </header>
+
+        <section class="certificate-content">
+            This is to certify that
+            <span class="student-name">{{ user.name }}</span>
+            has successfully completed all academic submissions, assignments and departmental requirements.
+            <br><br>
+            All dues are cleared successfully.
+            <br><br>
+            Status: <strong style="color:#16a34a;">CLEARED</strong>
+            <br>
+            Date: {{ moment().format('DD MMMM YYYY') if moment else '25 May 2026' }}
+            <br><br>
+            <span class="badge">AI Verified and Department Approved</span>
+        </section>
+
+        <footer class="certificate-footer">
+            <div class="signature">Faculty Signature</div>
+            <div class="signature">HOD Signature</div>
+        </footer>
+
+        <div class="print-actions">
+            <button onclick="window.print()" class="btn-primary">Print / Download PDF</button>
+            <a href="/dashboard" class="btn-secondary">Back to Dashboard</a>
+        </div>
+    </main>
+</body>
+</html>

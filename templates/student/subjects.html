@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subjects | SISTec No Dues</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard">
+    <div class="container">
+        <header class="compact-topbar">
+            <a href="/dashboard" class="back-btn">Back</a>
+            <h2>Subjects</h2>
+            <a href="/logout" class="btn-danger">Logout</a>
+        </header>
+
+        <section class="page-header">
+            <div>
+                <h1>Select Subject</h1>
+                <p>Open a subject to view units and assignments.</p>
+            </div>
+        </section>
+
+        <section class="grid">
+            {% for subject in subjects %}
+            <article class="item-card">
+                <span class="badge">{{ subject['code'] }}</span>
+                <h3 style="margin-top:14px;">{{ subject['name'] }}</h3>
+                <p>{{ subject['dept'] }} | {{ subject['semester'] }}</p>
+                <div class="form-actions">
+                    <a href="/units/{{ subject['id'] }}" class="open-btn">Open Subject</a>
+                </div>
+            </article>
+            {% endfor %}
+        </section>
+    </div>
+</body>
+</html>

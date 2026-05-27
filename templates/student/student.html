@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | SISTec No Dues</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard">
+    <aside class="sidebar">
+        <h2>Maxdue-Hub<span>Student portal</span></h2>
+        <a href="/dashboard" class="active">Dashboard</a>
+        <a href="/subjects">Subjects</a>
+        <a href="/profile">My Profile</a>
+        <a href="/change_password">Password</a>
+        <a href="/logout" class="logout">Logout</a>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1>Student Dashboard</h1>
+                <p class="welcome-text">Academic clearance overview</p>
+            </div>
+            <img src="/static/user_{{ user['id'] }}.jpg" class="profile" onerror="this.src='/static/user_32.jpg'" alt="Student profile">
+        </div>
+
+        <section class="welcome">
+            <span class="badge">Student Portal</span>
+            <h2>Welcome back, {{ user['name'] }}</h2>
+            <p class="college">Sagar Institute of Science and Technology</p>
+            <p>Department of Cyber Security, Gandhi Nagar, Bhopal</p>
+            <div class="welcome-buttons">
+                <a href="/subjects" class="primary-btn">View Subjects</a>
+                <a href="/profile" class="secondary-btn">My Profile</a>
+            </div>
+        </section>
+
+        <section class="cards">
+            <div class="card green">
+                <h2>{{ approved }}</h2>
+                <p>Cleared Assignments</p>
+            </div>
+            <div class="card red">
+                <h2>{{ pending }}</h2>
+                <p>Pending Assignments</p>
+            </div>
+            <div class="card blue">
+                <h2>{{ progress }}%</h2>
+                <p>Overall Progress</p>
+            </div>
+            <div class="card orange">
+                <h2>{{ attendance }}%</h2>
+                <p>Attendance</p>
+            </div>
+        </section>
+
+        <section class="table-box">
+            <div class="table-header">Subject Status</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in subjects %}
+                    <tr>
+                        <td>{{ s.name }}</td>
+                        <td>
+                            {% if s.status == "Cleared" %}
+                                <span class="status cleared">Cleared</span>
+                            {% else %}
+                                <span class="status pending">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ s.remark }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="certificate">
+            {% if no_dues_status == "Unlocked" %}
+            <div class="success">
+                <h1>No Dues Unlocked</h1>
+                <p>You are eligible for the No Dues Certificate.</p>
+                <p>Attendance: {{ attendance }}% | Progress: {{ progress }}%</p>
+                <div class="form-actions">
+                    <a href="/no_dues_certificate" class="download-btn">Download Certificate</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="locked">
+                <h1>No Dues Locked</h1>
+                <p>{{ no_dues_message }}</p>
+                <p>Attendance: {{ attendance }}% | Progress: {{ progress }}%</p>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>
