@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Details</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<div class="subjects-container">
+
+    <!-- Header Card -->
+    <div class="subject-hero">
+
+        <div>
+            <h1>
+                <i class="fa-solid fa-building"></i>
+                Department Details
+            </h1>
+
+            <p>
+                Department of CSE with Cyber Security
+            </p>
+        </div>
+
+        <a href="/dashboard" class="back-btn">
+            <i class="fa-solid fa-arrow-left"></i>
+            Dashboard
+        </a>
+
+    </div>
+
+    <!-- Department Info -->
+    <div class="dashboard-stats">
+
+        <div class="dashboard-card blue-card">
+            <h2>CSE</h2>
+            <p>Department</p>
+        </div>
+
+        <div class="dashboard-card green-card">
+            <h2>Cyber Security</h2>
+            <p>Specialization</p>
+        </div>
+
+        <div class="dashboard-card orange-card">
+            <h2>6th SEM</h2>
+            <p>Semester</p>
+        </div>
+
+    </div>
+
+    <!-- Subject Table -->
+    <div class="dashboard-table-section">
+
+        <div class="table-title">
+            Subject & Faculty Details
+        </div>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>BT Code</th>
+                        <th>Subject Name</th>
+                        <th>Faculty</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for sub in subjects %}
+
+                    <tr>
+
+                        <td>
+                            <span class="status cleared">
+                                {{ sub.code }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ sub.name }}
+                        </td>
+
+                        <td>
+                            {{ sub.faculty_name }}
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

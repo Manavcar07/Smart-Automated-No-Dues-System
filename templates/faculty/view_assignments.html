@@ -6,16 +6,55 @@
     <title>Assignments | SISTec No Dues</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="dashboard">
-    <aside class="sidebar">
-        <h2>Maxdue-Hub<span>Faculty portal</span></h2>
-        <a href="/faculty_dashboard">Dashboard</a>
-        <a href="/faculty_profile">Profile</a>
-        <a href="/faculty/attendance">Attendance</a>
-        <a href="/logout" class="logout">Logout</a>
+
+    <button class="student-menu-toggle" onclick="toggleSidebar()">
+        ☰
+    </button>
+
+    <div class="student-overlay" onclick="toggleSidebar()"></div>
+
+    <aside class="student-sidebar">
+
+        <div class="student-sidebar-top">
+
+            <div>
+                <h2>Maxdue-Hub</h2>
+                <p>Faculty Portal</p>
+            </div>
+
+            <button class="student-sidebar-close"
+                    onclick="toggleSidebar()">
+                ✕
+            </button>
+
+        </div>
+
+        <nav class="student-sidebar-nav">
+
+            <a href="/faculty_dashboard">
+                Dashboard
+            </a>
+
+            <a href="/faculty_profile">
+                Profile
+            </a>
+
+            <a href="/faculty/attendance">
+                Attendance
+            </a>
+
+        </nav>
+
+        <div class="student-sidebar-logout">
+            <a href="/logout">
+                Logout
+            </a>
+        </div>
+
     </aside>
 
-    <main class="main">
+    <main class="student-main">
+
         <div class="page-header">
             <div>
                 <h1>Assignments</h1>
@@ -24,31 +63,72 @@
         </div>
 
         {% if assignments|length == 0 %}
+
             <section class="empty-state">
                 <h2>No Assignments Available</h2>
                 <p>No assignments have been uploaded yet.</p>
             </section>
+
         {% else %}
+
             <section class="assignment-container">
+
                 {% for a in assignments %}
+
                 <article class="assignment-card">
+
                     <div class="assignment-info">
                         <h3>{{ a.title }}</h3>
                         <p>Assignment ID: {{ a.id }}</p>
                     </div>
+
                     <div class="assignment-actions">
-                        <a href="{{ url_for('uploaded_file', filename=a['file_path']) }}" target="_blank" class="btn-primary">View PDF</a>
-                        <a href="/view_submissions/{{ a.id }}" class="btn-success">Submissions</a>
-                        <a href="/delete_assignment/{{ a.id }}" class="btn-danger">Delete</a>
+
+                        <a href="{{ url_for('uploaded_file', filename=a['file_path']) }}"
+                           target="_blank"
+                           class="btn-primary">
+                            View PDF
+                        </a>
+
+                        <a href="/view_submissions/{{ a.id }}"
+                           class="btn-success">
+                            Submissions
+                        </a>
+
+                        <a href="/delete_assignment/{{ a.id }}"
+                           class="btn-danger"
+                           onclick="return confirm('Delete this assignment?')">
+                            Delete
+                        </a>
+
                     </div>
+
                 </article>
+
                 {% endfor %}
+
             </section>
+
         {% endif %}
 
         <div class="form-actions">
-            <a href="/faculty_dashboard" class="back-btn">Back to Dashboard</a>
+
+            <a href="/faculty_dashboard"
+               class="btn-secondary">
+                Back to Dashboard
+            </a>
+
         </div>
+
     </main>
+
+    <script>
+        function toggleSidebar() {
+            document.body.classList.toggle(
+                "student-sidebar-open"
+            );
+        }
+    </script>
+
 </body>
 </html>

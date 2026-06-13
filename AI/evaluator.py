@@ -1,72 +1,118 @@
-from PyPDF2 import PdfReader
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+import os
+import re
 
-def extract_text(pdf_path):
-    text = ""
+from AI.ocr_reader import extract_text
+from AI.handwritten_checker import check_handwritten
+from AI.prompts import PROMPT_TEMPLATE
+
+from dotenv import load_dotenv
+import google.generativeai as genai
+
+load_dotenv()
+
+genai.configure(
+        api_key=os.getenv("GEMINI_API_KEY")
+    )
+
+model = genai.GenerativeModel(
+        "gemini-2.5-flash"
+    )
+
+def evaluate_assignment(question_pdf, student_pdf):
 
     try:
-        reader = PdfReader(pdf_path)
 
-        for page in reader.pages:
-            content = page.extract_text()
+        question_text = extract_text(question_pdf)
 
-            if content:
-                text += content
+        answer_text = extract_text(student_pdf)
 
-    except Exception as e:
-        print("PDF Error:", e)
+        print("\n====================")
+        print("QUESTION TEXT")
+        print("====================")
+        print(question_text)
 
-    return text
+        print("\n====================")
+        print("ANSWER TEXT")
+        print("====================")
+        print(answer_text)
 
+        handwritten = check_handwritten(student_pdf)
 
-def evaluate_assignment(pdf_path, expected_keywords=None):
+        if not handwritten:
 
-    if expected_keywords is None:
-        expected_keywords = [
-            "docker",
-            "container",
-            "image",
-            "linux",
-            "deployment"
-        ]
+            return {
+                "ai_status": "rejected",
+                "ai_score": 0,
+                "ai_reason": "Not handwritten",
+                "is_handwritten": 0
+            }
 
-    text = extract_text(pdf_path)
+        prompt = PROMPT_TEMPLATE.format(
+            question=question_text,
+            answer=answer_text
+        )
 
-    if not text:
+        response = model.generate_content(prompt)
+
+        result = response.text
+
+        print("\n====================")
+        print("GEMINI RESPONSE")
+        print("====================")
+        print(result)
+
+        status_match = re.search(
+            r"STATUS:\s*(approved|rejected)",
+            result,
+            re.IGNORECASE
+        )
+
+        score_match = re.search(
+            r"SCORE:\s*(\d+)",
+            result,
+            re.IGNORECASE
+        )
+
+        reason_match = re.search(
+            r"REASON:\s*(.*)",
+            result,
+            re.IGNORECASE
+        )
+
+        ai_status = (
+            status_match.group(1).lower()
+            if status_match
+            else "rejected"
+        )
+
+        ai_score = (
+            int(score_match.group(1))
+            if score_match
+            else 0
+        )
+
+        ai_reason = (
+            reason_match.group(1)
+            if reason_match
+            else "No reason"
+        )
+
+        ai_reason = ai_reason[:80]
+
         return {
-            "marks": 0,
-            "feedback": "No readable content found."
+            "ai_status": ai_status,
+            "ai_score": ai_score,
+            "ai_reason": ai_reason,
+            "is_handwritten": 1
         }
 
-    text_lower = text.lower()
+    except Exception as e:
 
-    # Keyword Score
-    keyword_matches = 0
+        print("AI ERROR:", e)
 
-    for word in expected_keywords:
-        if word.lower() in text_lower:
-            keyword_matches += 1
-
-    keyword_score = (keyword_matches / len(expected_keywords)) * 10
-
-    # Word Count
-    word_count = len(text.split())
-
-    # Final Marks
-    final_marks = round(min(keyword_score + (word_count / 100), 10), 2)
-
-    # Feedback
-    if final_marks >= 8:
-        feedback = "Excellent assignment submission."
-    elif final_marks >= 5:
-        feedback = "Good work, but improvements are needed."
-    else:
-        feedback = "Poor assignment quality."
-
-    return {
-        "marks": final_marks,
-        "feedback": feedback,
-        "word_count": word_count,
-        "keywords_found": keyword_matches
-    }
+        return {
+            "ai_status": "pending",
+            "ai_score": 0,
+            "ai_reason": str(e),
+            "is_handwritten": 1
+        }

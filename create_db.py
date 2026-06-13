@@ -104,6 +104,16 @@ CREATE TABLE IF NOT EXISTS submissions (
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 """)
+
+c.execute("""
+CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER,
+    message TEXT,
+    is_read INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+""")
 # -------- ADD ATTENDANCE COLUMN SAFELY --------
 
 try:
@@ -140,8 +150,6 @@ except:
 #     """)
 
 # -------- SUBJECTS (SAFE INSERT) --------
-# -------- SUBJECTS RESET + INSERT --------
-c.execute("DELETE FROM subjects")
 
 subjects = [
     ("CY601", "CCID", "CSE - Cyber Security", "6th SEM"),
@@ -159,10 +167,10 @@ c.executemany("""
 INSERT OR IGNORE INTO faculty (id, faculty_id, password, name, email, department, phone)
 VALUES (?, ?, ?, ?, ?, ?, ?)
 """, [
-    (1, 'F101', '1234', 'Yogesh Sir', 'yogesh@gmail.com', 'Cyber Security', '9999999991'),
-    (2, 'F102', '1234', 'Garima Maam', 'garima@gmail.com', 'Cyber Security', '9999999992'),
-    (3, 'F103', '1234', 'Abdulla Sir', 'abdulla@gmail.com', 'Cyber Security', '9999999993'),
-    (4, 'F104', '1234', 'Shivani Maam', 'shivani@gmail.com', 'Cyber Security', '9999999994')
+    (1, 'F101', '1234', 'Prof. Yogesh Sharma', 'yogesh@gmail.com', 'Cyber Security', '9999999991'),
+    (2, 'F102', '1234', 'Dr. Garima Mathur', 'garima@gmail.com', 'Cyber Security', '9999999992'),
+    (3, 'F103', '1234', 'Prof. Abdulla Dhar', 'abdulla@gmail.com', 'Cyber Security', '9999999993'),
+    (4, 'F104', '1234', 'Prof. Shivani Saxena', 'shivani@gmail.com', 'Cyber Security', '9999999994')
 ])
 
 #-------- SUBJECT → FACULTY LINK --------
@@ -173,8 +181,6 @@ c.execute("UPDATE subjects SET faculty_id = 4 WHERE name = 'OOAD'")
 
 
 # -------- UNITS (SAFE INSERT) --------
-# -------- UNITS (CORRECT LINKING) --------
-c.execute("DELETE FROM units")
 
 subjects_db = c.execute("SELECT id FROM subjects").fetchall()
 
@@ -212,7 +218,7 @@ with open(BASE_DIR / "students.csv", newline='', encoding='utf-8') as file:
             "2027"                    # ✅ FIXED PASSING YEAR
         ))
 c.executemany("""
-INSERT OR REPLACE INTO students
+INSERT OR IGNORE INTO students
 (username, password, name, enrollment, dept, semester, year, degree, passing_year)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 """, data)
@@ -221,3 +227,5 @@ conn.commit()
 conn.close()
 
 print("Database fully initialized.")
+
+

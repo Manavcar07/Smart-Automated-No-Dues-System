@@ -1,106 +1,535 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard | SISTec No Dues</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body class="dashboard">
-    <aside class="sidebar">
-        <h2>Maxdue-Hub<span>Student portal</span></h2>
-        <a href="/dashboard" class="active">Dashboard</a>
-        <a href="/subjects">Subjects</a>
-        <a href="/profile">My Profile</a>
-        <a href="/change_password">Password</a>
-        <a href="/logout" class="logout">Logout</a>
-    </aside>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-    <main class="main">
-        <div class="topbar">
+    <title>
+        Student Dashboard | SISTec No Dues
+    </title>
+
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body class="dashboard student-dashboard-page">
+
+    <!-- MENU BUTTON -->
+    <button class="student-menu-toggle">
+
+        <i class="fa-solid fa-bars"></i>
+
+    </button>
+
+    <!-- OVERLAY -->
+    <div class="student-overlay"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="student-sidebar">
+
+        <div class="student-sidebar-top">
+
             <div>
-                <h1>Student Dashboard</h1>
-                <p class="welcome-text">Academic clearance overview</p>
+
+                <h2>
+                    Maxdue-Hub
+                </h2>
+
+                <p>
+                    Student portal
+                </p>
+
             </div>
-            <img src="/static/user_{{ user['id'] }}.jpg" class="profile" onerror="this.src='/static/user_32.jpg'" alt="Student profile">
+
+            <button class="student-sidebar-close">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
         </div>
 
-        <section class="welcome">
-            <span class="badge">Student Portal</span>
-            <h2>Welcome back, {{ user['name'] }}</h2>
-            <p class="college">Sagar Institute of Science and Technology</p>
-            <p>Department of Cyber Security, Gandhi Nagar, Bhopal</p>
-            <div class="welcome-buttons">
-                <a href="/subjects" class="primary-btn">View Subjects</a>
-                <a href="/profile" class="secondary-btn">My Profile</a>
-            </div>
-        </section>
+        <!-- NAVIGATION -->
+        <nav class="student-sidebar-nav">
 
-        <section class="cards">
-            <div class="card green">
-                <h2>{{ approved }}</h2>
-                <p>Cleared Assignments</p>
-            </div>
-            <div class="card red">
-                <h2>{{ pending }}</h2>
-                <p>Pending Assignments</p>
-            </div>
-            <div class="card blue">
-                <h2>{{ progress }}%</h2>
-                <p>Overall Progress</p>
-            </div>
-            <div class="card orange">
-                <h2>{{ attendance }}%</h2>
-                <p>Attendance</p>
-            </div>
-        </section>
+            <a href="/dashboard"
+                class="active">
 
-        <section class="table-box">
-            <div class="table-header">Subject Status</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Subject</th>
-                        <th>Status</th>
-                        <th>Remarks</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for s in subjects %}
-                    <tr>
-                        <td>{{ s.name }}</td>
-                        <td>
-                            {% if s.status == "Cleared" %}
-                                <span class="status cleared">Cleared</span>
-                            {% else %}
-                                <span class="status pending">Pending</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ s.remark }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </section>
+                <i class="fa-solid fa-house"></i>
 
-        <section class="certificate">
-            {% if no_dues_status == "Unlocked" %}
-            <div class="success">
-                <h1>No Dues Unlocked</h1>
-                <p>You are eligible for the No Dues Certificate.</p>
-                <p>Attendance: {{ attendance }}% | Progress: {{ progress }}%</p>
-                <div class="form-actions">
-                    <a href="/no_dues_certificate" class="download-btn">Download Certificate</a>
-                </div>
-            </div>
-            {% else %}
-            <div class="locked">
-                <h1>No Dues Locked</h1>
-                <p>{{ no_dues_message }}</p>
-                <p>Attendance: {{ attendance }}% | Progress: {{ progress }}%</p>
-            </div>
+                <span>
+                    Home
+                </span>
+
+            </a>
+
+            <a href="#clearanceOverview">
+
+                <i class="fa-solid fa-clipboard-check"></i>
+
+                <span>
+                    Academic Clearance Overview
+                </span>
+
+            </a>
+
+            <a href="/no_dues_certificate">
+
+                <i class="fa-solid fa-award"></i>
+
+                <span>
+                    No Dues Certificate
+                </span>
+
+            </a>
+
+          <a href="/department-details" class="department-link">
+
+    <i class="fa-solid fa-building"></i>
+
+    <span>
+        Department Details
+    </span>
+
+</a>
+
+        </nav>
+
+        <!-- LOGOUT -->
+        <div class="student-sidebar-logout">
+
+            <a href="/logout">
+
+                <i class="fa-solid fa-right-from-bracket"></i>
+
+                <span>
+                    Logout
+                </span>
+
+            </a>
+
+        </div>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="student-main">
+
+        <!-- TOPBAR -->
+        <div class="dashboard-topbar">
+
+            <div class="notification-bar">
+
+                <!-- NOTIFICATION -->
+
+    <button class="notification-btn">
+
+        <i class="fa-solid fa-bell"></i>
+
+        <span class="notification-count">
+            {% if notification_count > 0 %}
+                {{ notification_count }}
             {% endif %}
+        </span>
+
+    </button>
+
+    <div class="notification-dropdown">
+
+        {% if notifications %}
+
+            {% for n in notifications %}
+
+            <div class="notification-item">
+                <p>{{ n.message }}</p>
+                <span>{{ n.created_at }}</span>
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="notification-empty">
+                No notifications
+            </div>
+
+        {% endif %}
+
+    </div>
+                <!-- PROFILE -->
+                <a href="/profile" class="student-profile">
+
+    <img src="{{ url_for('static', filename='user_' ~ session['user_id'] ~ '.jpg') }}"
+     onerror="this.src='{{ url_for('static', filename='default_pic.png') }}'"
+     class="student-profile-avatar"
+     alt="profile">
+     
+    <div>
+
+        <h4>
+            {{ user['name'] }}
+        </h4>
+
+        <span>
+            CSE - Cyber Security
+        </span>
+
+    </div>
+
+</a>
+
+            </div>
+
+        </div>
+
+        <!-- HERO -->
+        <section class="student-hero">
+
+            <span class="hero-badge">
+
+                Student Portal
+
+            </span>
+
+            <h1>
+
+                Welcome back,
+                {{ user['name'] }}
+
+            </h1>
+
+            <h3>
+
+                Sagar Institute of Science and Technology Gandhi Nagar, Bhopal Madhya Pradesh
+
+            </h3>
+
+            <p>
+                
+                Department of CSE with Cyber Security
+
+            </p>
+
+            <div class="hero-buttons">
+
+                <a href="/subjects"
+                    class="primary-btn">
+
+                    <i class="fa-solid fa-book-open"></i>
+
+                    View Subjects
+
+                </a>
+
+            </div>
+
         </section>
+
+        <!-- STATS -->
+      <section class="dashboard-stats">
+
+            <div class="dashboard-card green-card">
+
+                <h2>
+                    {{ approved }}
+                </h2>
+
+                <p>
+                    Cleared Assignments
+                </p>
+
+            </div>
+
+            <div class="dashboard-card red-card">
+
+                <h2>
+                    {{ pending }}
+                </h2>
+
+                <p>
+                    Pending Assignments
+                </p>
+
+            </div>
+
+            <div class="dashboard-card blue-card">
+
+                <h2>
+                    {{ progress }}%
+                </h2>
+
+                <p>
+                    Overall Progress
+                </p>
+
+            </div>
+
+            <div class="dashboard-card orange-card">
+
+                <h2>
+                    {{ attendance }}%
+                </h2>
+
+                <p>
+                    Attendance
+                </p>
+
+            </div>
+
+        </section>
+
+        <!-- SUBJECT TABLE -->
+       <section class="dashboard-table-section"
+    id="clearanceOverview">
+
+            <div class="table-title">
+
+                Subject Status
+
+            </div>
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Subject</th>
+                            <th>Status</th>
+                            <th>Remarks</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for s in subjects %}
+
+                        <tr>
+
+                            <td>
+                                {{ s.name }}
+                            </td>
+
+                            <td>
+
+                                {% if s.status == "Cleared" %}
+
+                                <span class="status cleared">
+                                    Cleared
+                                </span>
+
+                                {% else %}
+
+                                <span class="status pending">
+                                    Pending
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+                                {{ s.remark }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <!-- BOTTOM -->
+        <section class="bottom-sections">
+
+            <!-- NO DUES -->
+            <div class="no-dues-box">
+
+                {% if no_dues_status == "Unlocked" %}
+
+                <div class="no-dues-success">
+
+                    <div class="success-icon">
+
+                        <i class="fa-solid fa-circle-check"></i>
+
+                    </div>
+
+                    <h2>
+                        No Dues Unlocked!
+                    </h2>
+
+                    <p>
+                        You are eligible for the
+                        No Dues Certificate.
+                    </p>
+
+                    <div class="progress-info">
+
+                        Attendance:
+                        {{ attendance }}%
+
+                        |
+
+                        Progress:
+                        {{ progress }}%
+
+                    </div>
+
+                    <a href="/no_dues_certificate"
+                        class="download-btn">
+
+                        <i class="fa-solid fa-download"></i>
+
+                        Download Certificate
+
+                    </a>
+
+                </div>
+
+                {% else %}
+
+                <div class="no-dues-locked">
+
+                    <div class="lock-icon">
+
+                        <i class="fa-solid fa-lock"></i>
+
+                    </div>
+
+                    <h2>
+                        No Dues Locked !
+                    </h2>
+
+                    <p>
+                        {{ no_dues_message }}
+                    </p>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+            <!-- ATTENDANCE -->
+            <div class="attendance-box">
+
+                <div class="attendance-header">
+
+                    <h2>
+                        Attendance Overview
+                    </h2>
+
+                    <p>
+                        Track your attendance
+                        statistics and history.
+                    </p>
+
+                </div>
+
+                <div class="attendance-stats">
+
+                    <div class="mini-card">
+
+                        <h3>
+                            {{ attendance }}%
+                        </h3>
+
+                        <span>
+                            Overall Attendance
+                        </span>
+
+                    </div>
+
+                    <div class="mini-card">
+
+                        <h3>
+                            124
+                        </h3>
+
+                        <span>
+                            Present Days
+                        </span>
+
+                    </div>
+
+                    <div class="mini-card">
+
+                        <h3>
+                            35
+                        </h3>
+
+                        <span>
+                            Total Classes
+                        </span>
+
+                    </div>
+
+                    <div class="mini-card">
+
+                        <h3>
+                            11
+                        </h3>
+
+                        <span>
+                            Absent Days
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <!-- GRAPH -->
+                <div class="attendance-graph">
+
+                    <div class="graph-title">
+
+                        Attendance Chart
+
+                    </div>
+
+                    <div class="fake-chart">
+
+                        <div class="line"></div>
+
+                        <div class="dots">
+
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
     </main>
+<script src="{{ url_for('static', filename='sidebar.js') }}"></script>
+
+<script src="{{ url_for('static', filename='notification.js') }}"></script>
+
 </body>
+
 </html>

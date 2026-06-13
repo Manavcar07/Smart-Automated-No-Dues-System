@@ -6,51 +6,144 @@
     <title>Faculty Profile | SISTec No Dues</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="dashboard">
-    <aside class="sidebar">
-        <h2>Maxdue-Hub<span>Faculty portal</span></h2>
-        <a href="/faculty_dashboard">Dashboard</a>
-        <a href="/faculty_profile" class="active">Profile</a>
-        <a href="/faculty/attendance">Attendance</a>
-        <a href="/logout" class="logout">Logout</a>
-    </aside>
+<body class="dashboard student-dashboard-page">
+    <button class="student-menu-toggle" onclick="toggleSidebar()">
+        ☰
+    </button>
 
-    <main class="main">
-        <div class="page-header">
-            <div>
-                <h1>Faculty Profile</h1>
-                <p>Keep faculty contact details updated.</p>
-            </div>
+    <div class="student-overlay" onclick="toggleSidebar()"></div>
+
+    <aside class="student-sidebar">
+
+<div class="student-sidebar-top">
+    <div>
+        <h2>Maxdue-Hub</h2>
+        <p>Faculty Portal</p>
+    </div>
+
+    <button class="student-sidebar-close"
+            onclick="toggleSidebar()">
+        ✕
+    </button>
+</div>
+
+<nav class="student-sidebar-nav">
+
+    <a href="/faculty_dashboard">
+        Dashboard
+    </a>
+
+    <a href="/faculty_profile" class="active">
+        Profile
+    </a>
+
+    <a href="/faculty/attendance">
+        Attendance
+    </a>
+
+</nav>
+
+<div class="student-sidebar-logout">
+    <a href="/logout">
+        Logout
+    </a>
+</div>
+
+</aside>
+
+<main class="student-main">
+
+<!-- Banner -->
+    <section class="student-hero">
+
+<span class="hero-badge">
+    Faculty Profile
+</span>
+
+<h1>
+    My Profile
+</h1>
+
+</section>
+
+<section class="profile-grid">
+    <article class="panel">
+
+    <h2>Profile Photo</h2>
+
+    <p class="panel-subtitle">
+        Faculty dashboard avatar.
+    </p>
+
+    <img src="{{ url_for('static', filename='faculty_' ~ session['faculty_id'] ~ '.jpg') }}"
+         onerror="this.src='{{ url_for('static', filename='default_pic.png') }}'"
+         class="profile-img"
+         alt="Faculty Photo">
+
+    <div class="profile-view-only">
+        <p class="profile-note">
+            Profile photo is managed by administrator.
+        </p>
+    </div>
+
+</article>
+
+<!-- Photo Card -->
+<article class="panel">
+
+    <h2>Faculty Details</h2>
+
+    <p class="panel-subtitle">
+        Official faculty information.
+    </p>
+
+    <div class="detail-list">
+
+        <div class="detail-item">
+            <span>Name</span>
+            <strong>{{ faculty['name'] }}</strong>
         </div>
 
-        <section class="form-card">
-            <form method="POST" action="/update_faculty_profile">
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input id="name" type="text" name="name" value="{{ faculty['name'] }}" required>
-                </div>
+        <div class="detail-item">
+            <span>Department</span>
+            <strong>{{ faculty['department'] }}</strong>
+        </div>
 
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input id="email" type="email" name="email" value="{{ faculty['email'] }}" required>
-                </div>
+        <div class="detail-item">
+            <span>Email</span>
+            <strong>{{ faculty['email'] }}</strong>
+        </div>
 
-                <div class="form-group">
-                    <label for="department">Department</label>
-                    <input id="department" type="text" name="department" value="{{ faculty['department'] }}" required>
-                </div>
+        <div class="detail-item">
+            <span>Mobile Number</span>
+            <strong>{{ faculty['phone'] }}</strong>
+        </div>
 
-                <div class="form-group">
-                    <label for="phone">Phone</label>
-                    <input id="phone" type="text" name="phone" value="{{ faculty['phone'] }}" required>
-                </div>
+        <div class="detail-item">
+            <span>Role</span>
+            <strong>Faculty</strong>
+        </div>
 
-                <div class="form-actions">
-                    <button type="submit" class="btn-primary">Update Profile</button>
-                    <a href="/faculty_dashboard" class="btn-secondary">Back to Dashboard</a>
-                </div>
-            </form>
-        </section>
-    </main>
+        <div class="detail-item">
+            <span>Assigned Subjects</span>
+            <strong>{{ subject_count }}</strong>
+        </div>
+
+    </div>
+
+</article>
+
+</section>
+
+</main>
+
+<script>
+function toggleSidebar() {
+    document.body.classList.toggle(
+        "student-sidebar-open"
+    );
+}
+</script>
+
 </body>
 </html>

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session , flash
+from flask import Flask, render_template, request, redirect, session , flash , url_for
 from AI.evaluator import evaluate_assignment
 import sqlite3
 import webbrowser
@@ -89,31 +89,33 @@ def dashboard():
 
     conn = get_db()
 
-    # 🔥 STUDENT DATA
     user = conn.execute("""
-
         SELECT *
-
         FROM students
-
         WHERE id=?
+    """, (session["user_id"],)).fetchone()
 
-    """, (
-        session["user_id"],
-    )).fetchone()
-
-    # 🔥 SAFE ATTENDANCE
     attendance = user["attendance"] if "attendance" in user.keys() else 0
 
-    # 🔥 SUBJECTS
+    notifications = conn.execute("""
+        SELECT *
+        FROM notifications
+        WHERE student_id=?
+        ORDER BY id DESC
+        LIMIT 10
+    """, (session["user_id"],)).fetchall()
+
+    notification_count = conn.execute("""
+        SELECT COUNT(*)
+        FROM notifications
+        WHERE student_id=?
+        AND is_read=0
+    """, (session["user_id"],)).fetchone()[0]
+
     subjects = conn.execute("""
-
         SELECT id, name
-
         FROM subjects
-
         WHERE dept=? AND semester=?
-
     """, (
         user["dept"],
         user["semester"]
@@ -121,92 +123,57 @@ def dashboard():
 
     subjects_with_status = []
 
-    cleared_subjects = 0
-
-    # 🔥 SUBJECT LOOP
     for s in subjects:
 
         total_sub = conn.execute("""
-
             SELECT COUNT(*)
-
             FROM assignments a
-
-            JOIN units u
-            ON a.unit_id = u.id
-
+            JOIN units u ON a.unit_id = u.id
             WHERE u.subject_id=?
-
-        """, (
-            s["id"],
-        )).fetchone()[0]
+        """, (s["id"],)).fetchone()[0]
 
         approved_sub = conn.execute("""
-
             SELECT COUNT(DISTINCT sub.assignment_id)
-
             FROM submissions sub
-
-            JOIN assignments a
-            ON sub.assignment_id = a.id
-
-            JOIN units u
-            ON a.unit_id = u.id
-
+            JOIN assignments a ON sub.assignment_id = a.id
+            JOIN units u ON a.unit_id = u.id
             WHERE sub.student_id=?
             AND sub.status='approved'
             AND u.subject_id=?
-
         """, (
             session["user_id"],
             s["id"]
         )).fetchone()[0]
 
         submitted_sub = conn.execute("""
-
             SELECT COUNT(DISTINCT sub.assignment_id)
-
             FROM submissions sub
-
-            JOIN assignments a
-            ON sub.assignment_id = a.id
-
-            JOIN units u
-            ON a.unit_id = u.id
-
+            JOIN assignments a ON sub.assignment_id = a.id
+            JOIN units u ON a.unit_id = u.id
             WHERE sub.student_id=?
             AND u.subject_id=?
-
         """, (
             session["user_id"],
             s["id"]
         )).fetchone()[0]
 
-        # 🔥 SUBJECT STATUS
         if total_sub > 0 and approved_sub == total_sub:
 
             status = "Cleared"
-
             remark = "All Assignments Approved"
-
-            cleared_subjects += 1
 
         elif submitted_sub > 0:
 
             status = "Pending"
-
-            remaining = total_sub - approved_sub
-
+            remaining = max(0, total_sub - approved_sub)
             remark = f"{remaining} Assignment Pending"
 
         else:
 
             status = "Pending"
-
             remark = "No Assignment Submitted"
 
         subjects_with_status.append({
-
             "id": s["id"],
             "name": s["name"],
             "status": status,
@@ -214,170 +181,173 @@ def dashboard():
             "submitted": submitted_sub,
             "approved": approved_sub,
             "total": total_sub
-
         })
 
-    # 🔥 PROGRESS
-    total_subjects = len(subjects)
-
-    progress = int(
-
-        (cleared_subjects / total_subjects) * 100
-
-    ) if total_subjects > 0 else 0
-
-    # 🔥 TOTAL APPROVED
+    # TOTAL APPROVED
     approved = conn.execute("""
-
-        SELECT COUNT(DISTINCT assignment_id)
-
-        FROM submissions
-
-        WHERE student_id=?
-        AND status='approved'
-
+        SELECT COUNT(DISTINCT sub.assignment_id)
+        FROM submissions sub
+        JOIN assignments a ON sub.assignment_id = a.id
+        JOIN units u ON a.unit_id = u.id
+        JOIN subjects s ON u.subject_id = s.id
+        WHERE sub.student_id=?
+        AND sub.status='approved'
+        AND s.dept=?
+        AND s.semester=?
     """, (
         session["user_id"],
+        user["dept"],
+        user["semester"]
     )).fetchone()[0]
 
-    # 🔥 TOTAL PENDING
-    pending = conn.execute("""
-
-        SELECT COUNT(DISTINCT assignment_id)
-
-        FROM submissions
-
-        WHERE student_id=?
-        AND status='pending'
-
+    # TOTAL ASSIGNMENTS
+    total_assignments = conn.execute("""
+        SELECT COUNT(*)
+        FROM assignments a
+        JOIN units u ON a.unit_id = u.id
+        JOIN subjects s ON u.subject_id = s.id
+        WHERE s.dept=?
+        AND s.semester=?
     """, (
-        session["user_id"],
+        user["dept"],
+        user["semester"]
     )).fetchone()[0]
 
-    # 🔥 NO DUES LOGIC
-    if progress == 100 and attendance >= 60:
+    pending = max(0, total_assignments - approved)
 
-        no_dues_status = "Unlocked"
+    if total_assignments > 0:
+        progress = min(
+            100,
+            round((approved / total_assignments) * 100)
+        )
+    else:
+        progress = 0
 
-        no_dues_message = "Eligible For No Dues"
+    if progress < 100:
+
+        no_dues_status = "Locked"
+        no_dues_message = f"{pending} Assignments Remaining"
+
+    elif attendance < 75:
+
+        no_dues_status = "Locked"
+        no_dues_message = (
+            f"Attendance Shortage ({attendance}%). "
+            "Minimum 75% Required"
+        )
 
     else:
 
-        no_dues_status = "Locked"
-
-        if attendance < 60:
-
-            no_dues_message = "Attendance Below 60%"
-
-        else:
-
-            no_dues_message = "Complete All Assignments"
+        no_dues_status = "Unlocked"
+        no_dues_message = "Eligible For No Dues"
 
     conn.close()
 
     return render_template(
-
         "student/student.html",
-
         user=user,
-
         approved=approved,
-
         pending=pending,
-
         progress=progress,
-
         attendance=attendance,
-
         no_dues_status=no_dues_status,
-
         no_dues_message=no_dues_message,
-
-        subjects=subjects_with_status
-
+        subjects=subjects_with_status,
+        notifications=notifications,
+        notification_count=notification_count
     )
+    
 # -------- FACULTY DASHBOARD --------
 @app.route("/faculty_dashboard")
 def faculty_dashboard():
+
     if "faculty_id" not in session:
         return redirect("/")
 
     conn = get_db()
 
-    # ✅ ONLY THAT FACULTY KE SUBJECTS
+    # Current Faculty
+    faculty = conn.execute("""
+        SELECT *
+        FROM faculty
+        WHERE id=?
+    """, (session["faculty_id"],)).fetchone()
+
+    # Faculty Subjects
     subjects = conn.execute("""
-        SELECT * FROM subjects
+        SELECT *
+        FROM subjects
         WHERE faculty_id=?
     """, (session["faculty_id"],)).fetchall()
 
-    # ✅ ONLY USI SUBJECT KE UNITS
+    # Faculty Units
     units = conn.execute("""
-        SELECT u.* FROM units u
-        JOIN subjects s ON u.subject_id = s.id
+        SELECT u.*
+        FROM units u
+        JOIN subjects s
+        ON u.subject_id = s.id
         WHERE s.faculty_id=?
     """, (session["faculty_id"],)).fetchall()
 
-    # ✅ TOTAL ASSIGNMENTS (global rehne de ya filter bhi kar sakta hai)
+    # Total Assignments
     total_assignments = conn.execute("""
         SELECT COUNT(a.id)
         FROM assignments a
-        JOIN units u ON a.unit_id = u.id
-        JOIN subjects s ON u.subject_id = s.id
+        JOIN units u ON a.unit_id=u.id
+        JOIN subjects s ON u.subject_id=s.id
         WHERE s.faculty_id=?
+    """, (session["faculty_id"],)).fetchone()[0]
+
+    # Pending Reviews Count
+    pending_count = conn.execute("""
+        SELECT COUNT(sub.id)
+        FROM submissions sub
+        JOIN assignments a ON sub.assignment_id=a.id
+        JOIN units u ON a.unit_id=u.id
+        JOIN subjects s ON u.subject_id=s.id
+        WHERE s.faculty_id=?
+        AND sub.status='pending'
     """, (session["faculty_id"],)).fetchone()[0]
 
     conn.close()
 
     return render_template(
         "faculty/faculty_dashboard.html",
+        faculty=faculty,
         subjects=subjects,
         units=units,
-        total_assignments=total_assignments
+        total_assignments=total_assignments,
+        pending_count=pending_count
     )
+#-------- PENDING REVIEWS --------    
+@app.route("/pending_reviews")
+def pending_reviews():
 
-
-@app.route('/faculty_profile')
-def faculty_profile():
-    if session.get('role') != 'faculty':
-        return redirect('/login')
+    if "faculty_id" not in session:
+        return redirect("/")
 
     conn = get_db()
-    faculty = conn.execute(
-        "SELECT * FROM faculty WHERE id=?",
-        (session["faculty_id"],)
-    ).fetchone()
+
+    assignments = conn.execute("""
+        SELECT DISTINCT
+            a.id,
+            a.title,
+            u.name AS unit_name,
+            s.name AS subject_name
+        FROM submissions sub
+        JOIN assignments a ON sub.assignment_id = a.id
+        JOIN units u ON a.unit_id = u.id
+        JOIN subjects s ON u.subject_id = s.id
+        WHERE s.faculty_id = ?
+        AND LOWER(sub.status)='pending'
+    """, (session["faculty_id"],)).fetchall()
+
     conn.close()
 
     return render_template(
-        "faculty/faculty_profile.html",
-        faculty=faculty
+        "faculty/pending_reviews.html",
+        assignments=assignments
     )
-    
-    
-# -------- UPDATE FACULTY PROFILE --------
-@app.route('/update_faculty_profile', methods=['POST'])
-def update_faculty_profile():
-    if session.get('role') != 'faculty':
-        return redirect('/login')
-
-    name = request.form.get('name')
-    email = request.form.get('email')
-    department = request.form.get('department')
-    phone = request.form.get('phone')
-
-    conn = get_db()
-
-    conn.execute("""
-        UPDATE faculty
-        SET name=?, email=?, department=?, phone=?
-        WHERE id=?
-    """, (name, email, department, phone, session['faculty_id']))
-
-    conn.commit()
-    conn.close()
-
-    return redirect('/faculty_profile')
-
 #-------- SERVE UPLOADED FILES --------
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -507,10 +477,10 @@ def upload():
 
         from AI.evaluator import evaluate_assignment
 
-        # 🔥 UNIQUE FILE NAME
+        # UNIQUE FILE NAME
         filename = f"{assignment_id}_{int(time.time())}_{file.filename}"
 
-        # 🔥 SAVE STUDENT FILE
+        # SAVE STUDENT FILE
         student_pdf = os.path.join(
             app.config["UPLOAD_FOLDER"],
             filename
@@ -518,12 +488,13 @@ def upload():
 
         file.save(student_pdf)
 
-        # 🔥 GET QUESTION PDF
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
 
+        # GET ASSIGNMENT
         assignment = conn.execute("""
-            SELECT * FROM assignments
+            SELECT *
+            FROM assignments
             WHERE id=?
         """, (assignment_id,)).fetchone()
 
@@ -532,7 +503,7 @@ def upload():
             assignment["file_path"]
         )
 
-        # 🤖 AI CHECK
+        # AI EVALUATION
         ai_result = evaluate_assignment(
             question_pdf,
             student_pdf
@@ -540,28 +511,52 @@ def upload():
 
         print(ai_result)
 
-        # 🔥 FINAL STATUS
-        # Faculty hi final approve karega
+        # HANDWRITTEN CHECK
+        if ai_result["is_handwritten"] == 0:
+
+            conn.close()
+
+            os.remove(student_pdf)
+
+            flash(
+                "Only Handwritten Assignments Allowed ❌"
+            )
+
+            return redirect(request.referrer)
+
+        # FACULTY FINAL DECISION
         status = "pending"
 
-        # 🔥 INSERT SUBMISSION
-        c = conn.cursor()
-
-        c.execute("""
+        conn.execute("""
             INSERT INTO submissions
-            (assignment_id, student_id, file_path, status)
-            VALUES (?, ?, ?, ?)
+            (
+                assignment_id,
+                student_id,
+                file_path,
+                status,
+                ai_status,
+                ai_score,
+                ai_reason,
+                is_handwritten
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             assignment_id,
             student_id,
             filename,
-            status
+            status,
+            ai_result["ai_status"],
+            ai_result["ai_score"],
+            ai_result["ai_reason"],
+            ai_result["is_handwritten"]
         ))
 
         conn.commit()
         conn.close()
 
-        flash("Assignment Solution Uploaded Successfully ✅")
+        flash(
+            "Assignment Solution Uploaded Successfully ✅"
+        )
 
         return redirect(request.referrer)
 
@@ -676,17 +671,77 @@ def delete_assignment(assignment_id):
 # ✅ APPROVE
 @app.route('/approve/<int:submission_id>')
 def approve_submission(submission_id):
+
     if session.get('role') != 'faculty':
         return redirect('/login')
 
     conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
-    c.execute("UPDATE submissions SET status='approved' WHERE id=?", (submission_id,))
+    submission = c.execute("""
+        SELECT *
+        FROM submissions
+        WHERE id=?
+    """, (submission_id,)).fetchone()
+
+    c.execute("""
+        UPDATE submissions
+        SET status='approved'
+        WHERE id=?
+    """, (submission_id,))
+
+    c.execute("""
+        INSERT INTO notifications
+        (student_id, message)
+        VALUES (?, ?)
+    """, (
+        submission["student_id"],
+        "✅ Your assignment has been approved by faculty."
+    ))
+
     conn.commit()
     conn.close()
 
     return redirect(request.referrer)
+
+# ❌ REJECT
+@app.route('/reject/<int:submission_id>')
+def reject_submission(submission_id):
+
+    if session.get('role') != 'faculty':
+        return redirect('/login')
+
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    submission = c.execute("""
+        SELECT *
+        FROM submissions
+        WHERE id=?
+    """, (submission_id,)).fetchone()
+
+    c.execute("""
+        UPDATE submissions
+        SET status='rejected'
+        WHERE id=?
+    """, (submission_id,))
+
+    c.execute("""
+        INSERT INTO notifications
+        (student_id, message)
+        VALUES (?, ?)
+    """, (
+        submission["student_id"],
+        "❌ Your assignment has been rejected by faculty."
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(request.referrer)
+
 
 # -------- NO DUES CERTIFICATE --------
 @app.route("/no_dues_certificate")
@@ -697,170 +752,185 @@ def no_dues_certificate():
 
     conn = get_db()
 
-    # 🔥 STUDENT DATA
-    user = conn.execute("""
-        SELECT *
-        FROM students
-        WHERE id=?
-    """, (session["user_id"],)).fetchone()
-
-    conn.close()
-
-    return render_template(
-        "student/no_dues.html",
-        user=user
-    )
-
-# -------- FACULTY ATTENDANCE --------
-@app.route('/faculty/attendance', methods=['GET', 'POST'])
-def faculty_attendance():
-
-    if "faculty_id" not in session:
-        return redirect("/login")
-
-    conn = get_db()
-
-    # 🔥 GET STUDENTS
-    students = conn.execute("""
-
-        SELECT id, name, attendance
-
-        FROM students
-
-    """).fetchall()
-
-    # 🔥 UPDATE ATTENDANCE
-    if request.method == "POST":
-
-        student_id = request.form.get("student_id")
-
-        attendance = request.form.get("attendance")
-
-        conn.execute("""
-
-            UPDATE students
-
-            SET attendance=?
-
-            WHERE id=?
-
-        """, (
-            attendance,
-            student_id
-        ))
-
-        conn.commit()
-
-        flash("Attendance Updated Successfully ✅")
-
-        return redirect('/faculty/attendance')
-
-    conn.close()
-
-    return render_template(
-
-        "faculty/attendance.html",
-
-        students=students
-
-    )
-#------my profile------#
-@app.route("/profile")
-def profile():
-    if "user_id" not in session:
-        return redirect("/")
-
-    conn = get_db()
-
     user = conn.execute(
         "SELECT * FROM students WHERE id=?",
         (session["user_id"],)
     ).fetchone()
 
+    attendance = user["attendance"]
+
+    total_assignments = conn.execute("""
+
+        SELECT COUNT(*)
+
+        FROM assignments a
+
+        JOIN units u ON a.unit_id = u.id
+        JOIN subjects s ON u.subject_id = s.id
+
+        WHERE s.dept=?
+        AND s.semester=?
+
+    """, (
+        user["dept"],
+        user["semester"]
+    )).fetchone()[0]
+
+    approved = conn.execute("""
+
+        SELECT COUNT(DISTINCT assignment_id)
+
+        FROM submissions
+
+        WHERE student_id=?
+        AND status='approved'
+
+    """, (
+        session["user_id"],
+    )).fetchone()[0]
+
+    pending = total_assignments - approved
+
+    progress = int(
+        (approved / total_assignments) * 100
+    ) if total_assignments > 0 else 0
+
     conn.close()
 
-    return render_template("student/profile.html", user=user)
+    # STEP 1 : Assignments Check
+    if progress < 100:
 
-#-------- Upload Profile Picture --------
-@app.route("/upload_profile", methods=["POST"])
-def upload_profile():
-    if "user_id" not in session:
-        return redirect("/")
+        return render_template(
+            "student/no_dues_locked.html",
+            reason=f"{pending} Assignments Remaining"
+        )
 
-    file = request.files.get("photo")
+    # STEP 2 : Attendance Check
+    if attendance < 75:
 
-    if file and file.filename != "":
-        filename = f"user_{session['user_id']}.jpg"
+        return render_template(
+            "student/no_dues_locked.html",
+            reason=f"Attendance Shortage ({attendance}%). Minimum 75% Required"
+        )
 
-        # 🔥 Correct path (no error)
-        filepath = os.path.join(app.root_path, "static", filename)
-        file.save(filepath)
+    # STEP 3 : Generate Certificate
+    return render_template(
+        "student/no_dues.html",
+        user=user
+    )
+# -------- FACULTY ATTENDANCE --------
+@app.route('/faculty/attendance', methods=['GET', 'POST'])
+def faculty_attendance():
 
-    return redirect("/profile")
+    if "faculty_id" not in session:
+        return redirect('/')
 
-# ❌ REJECT
-@app.route('/reject/<int:submission_id>')
-def reject_submission(submission_id):
-    if session.get('role') != 'faculty':
-        return redirect('/login')
-
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-
-    c.execute("UPDATE submissions SET status='rejected' WHERE id=?", (submission_id,))
-    conn.commit()
-    conn.close()
-
-    return redirect(request.referrer)
-
-#-------- REMOVE PROFILE PICTURE --------
-@app.route("/remove_profile")
-def remove_profile():
-    if "user_id" not in session:
-        return redirect("/")
-
-    filename = f"user_{session['user_id']}.jpg"
-    filepath = os.path.join(app.root_path, "static", filename)
-
-    if os.path.exists(filepath):
-        os.remove(filepath)
-
-    return redirect("/profile")
-
-# -------- NO DUES CHECK --------
-@app.route('/no_dues/<int:subject_id>')
-def no_dues(subject_id):
-    if "user_id" not in session:
-        return redirect("/login")
-
-    student_id = session["user_id"]
     conn = get_db()
 
-    # 🔥 get all assignments of that subject
-    assignments = conn.execute("""
-        SELECT a.id, a.title
-        FROM assignments a
-        JOIN units u ON a.unit_id = u.id
-        WHERE u.subject_id=?
-    """, (subject_id,)).fetchall()
+    # Current Faculty
+    faculty = conn.execute("""
+        SELECT *
+        FROM faculty
+        WHERE id=?
+    """, (session["faculty_id"],)).fetchone()
 
-    result = []
+    # Attendance Permission Check
+    if faculty["is_attendance_admin"] != 1:
+        conn.close()
+        flash("Access Denied")
+        return redirect("/faculty_dashboard")
 
-    for a in assignments:
-        status = conn.execute("""
-            SELECT status FROM submissions
-            WHERE assignment_id=? AND student_id=?
-        """, (a["id"], student_id)).fetchone()
+    if request.method == "POST":
 
-        if status and status["status"] == "approved":
-            result.append((a["title"], True))
-        else:
-            result.append((a["title"], False))
+        student_id = request.form.get("student_id")
+        attendance = request.form.get("attendance")
+
+        conn.execute("""
+            UPDATE students
+            SET attendance=?
+            WHERE id=?
+        """, (attendance, student_id))
+
+        conn.commit()
+
+        flash("Attendance Updated Successfully")
+
+    students = conn.execute("""
+        SELECT *
+        FROM students
+        ORDER BY name
+    """).fetchall()
 
     conn.close()
 
-    return render_template("student/no_dues_check.html", result=result)
+    return render_template(
+        "faculty/attendance.html",
+        students=students,
+        faculty=faculty
+    )
+    
+#-------- STUDENT PROFILE --------
+@app.route("/faculty_profile")
+def faculty_profile():
 
+    if "faculty_id" not in session:
+        return redirect("/")
+
+    conn = get_db()
+
+    faculty = conn.execute("""
+        SELECT *
+        FROM faculty
+        WHERE id=?
+    """, (session["faculty_id"],)).fetchone()
+
+    subject_count = conn.execute("""
+        SELECT COUNT(*)
+        FROM subjects
+        WHERE faculty_id=?
+    """, (session["faculty_id"],)).fetchone()[0]
+
+    conn.close()
+
+    return render_template(
+        "faculty/faculty_profile.html",
+        faculty=faculty,
+        subject_count=subject_count
+    )
+
+# -------- DEPARTMENT DETAILS --------
+@app.route('/department-details')
+def department_details():
+
+    if "user_id" not in session:
+        return redirect("/")
+
+    conn = get_db()
+
+    # Student data
+    user = conn.execute(
+        "SELECT * FROM students WHERE id=?",
+        (session["user_id"],)
+    ).fetchone()
+
+    # Subjects + Faculty
+    subjects = conn.execute("""
+        SELECT
+            s.code,
+            s.name,
+            f.name AS faculty_name
+        FROM subjects s
+        LEFT JOIN faculty f
+        ON s.faculty_id = f.id
+    """).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "student/department_details.html",
+        user=user,
+        subjects=subjects
+    )
 # -------- CHANGE PASSWORD --------
 @app.route("/change_password", methods=["GET", "POST"])
 def change_password():
@@ -916,6 +986,26 @@ def forgot_password():
         return "<h3>Password Reset Successful ✅</h3><a href='/'>Login</a>"
 
     return render_template("auth/forgot_password.html")
+
+@app.route("/mark_notifications_read")
+def mark_notifications_read():
+
+    if "user_id" not in session:
+        return {"success": False}
+
+    conn = get_db()
+
+    conn.execute("""
+        UPDATE notifications
+        SET is_read=1
+        WHERE student_id=?
+        AND is_read=0
+    """, (session["user_id"],))
+
+    conn.commit()
+    conn.close()
+
+    return {"success": True}
 
 
 # -------- LOGOUT --------

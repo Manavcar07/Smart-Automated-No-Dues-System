@@ -6,16 +6,57 @@
     <title>Attendance | SISTec No Dues</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="dashboard">
-    <aside class="sidebar">
-        <h2>Maxdue-Hub<span>Faculty portal</span></h2>
-        <a href="/faculty_dashboard">Dashboard</a>
-        <a href="/faculty_profile">Profile</a>
-        <a href="/faculty/attendance" class="active">Attendance</a>
-        <a href="/logout" class="logout">Logout</a>
+
+
+
+    <button class="student-menu-toggle" onclick="toggleSidebar()">
+        ☰
+    </button>
+
+    <div class="student-overlay" onclick="toggleSidebar()"></div>
+
+    <aside class="student-sidebar">
+
+        <div class="student-sidebar-top">
+
+            <div>
+                <h2>Maxdue-Hub</h2>
+                <p>Faculty Portal</p>
+            </div>
+
+            <button class="student-sidebar-close"
+                    onclick="toggleSidebar()">
+                ✕
+            </button>
+
+        </div>
+
+        <nav class="student-sidebar-nav">
+
+            <a href="/faculty_dashboard">
+                Dashboard
+            </a>
+
+            <a href="/faculty_profile">
+                Profile
+            </a>
+
+            <a href="/faculty/attendance" class="active">
+                Attendance
+            </a>
+
+        </nav>
+
+        <div class="student-sidebar-logout">
+            <a href="/logout">
+                Logout
+            </a>
+        </div>
+
     </aside>
 
-    <main class="main">
+    <main class="student-main">
+
         <div class="page-header">
             <div>
                 <h1>Update Attendance</h1>
@@ -32,27 +73,71 @@
         {% endwith %}
 
         <section class="form-card">
+
             <form method="POST">
+
                 <div class="form-group">
-                    <label for="student_id">Select student</label>
-                    <select id="student_id" name="student_id" required>
+                    <label for="student_id">
+                        Select Student
+                    </label>
+
+                    <select id="student_id"
+                            name="student_id"
+                            required>
+
                         {% for s in students %}
-                        <option value="{{ s.id }}">{{ s.name }}</option>
+                        <option value="{{ s.id }}">
+                            {{ s.name }}
+                        </option>
                         {% endfor %}
+
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="attendance">Attendance %</label>
-                    <input id="attendance" type="number" name="attendance" min="0" max="100" required placeholder="Enter attendance">
+
+                    <label for="attendance">
+                        Attendance %
+                    </label>
+
+                    <input
+                        id="attendance"
+                        type="number"
+                        name="attendance"
+                        min="0"
+                        max="100"
+                        required
+                        placeholder="Enter attendance">
+
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn-primary">Update Attendance</button>
-                    <a href="/faculty_dashboard" class="btn-secondary">Back</a>
+
+                    <button type="submit"
+                            class="btn-primary">
+                        Update Attendance
+                    </button>
+
+                    <a href="/faculty_dashboard"
+                       class="btn-secondary">
+                        Back
+                    </a>
+
                 </div>
+
             </form>
+
         </section>
+
     </main>
+
+    <script>
+        function toggleSidebar() {
+            document.body.classList.toggle(
+                "student-sidebar-open"
+            );
+        }
+    </script>
+
 </body>
 </html>

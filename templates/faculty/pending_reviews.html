@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pending Reviews</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+       
+<div class="container">
+
+    <h1>Pending Reviews</h1>
+    <p>Assignments waiting for faculty approval.</p>
+
+    {% for assignment in assignments %}
+
+    <div class="subject-card">
+
+        <h3>{{ assignment.title }}</h3>
+
+        <p>
+            {{ assignment.unit_name }}
+        </p>
+
+        <a href="/view_submissions/{{ assignment.id }}"
+           class="btn-primary">
+            Review Submissions
+        </a>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+</body>
+</html>

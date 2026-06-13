@@ -6,70 +6,181 @@
     <title>Faculty Dashboard | SISTec No Dues</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="dashboard">
-    <aside class="sidebar">
-        <h2>Maxdue-Hub<span>Faculty portal</span></h2>
-        <a href="/faculty_dashboard" class="active">Dashboard</a>
-        <a href="/faculty_profile">Profile</a>
-        <a href="/faculty/attendance">Attendance</a>
-        <a href="/logout" class="logout">Logout</a>
-    </aside>
 
-    <main class="main">
-        <div class="topbar">
-            <div>
-                <h1>Faculty Dashboard</h1>
-                <p class="welcome-text">Manage assignments, attendance and student submissions.</p>
-            </div>
-            <a href="/faculty_profile" class="profile-btn">View Profile</a>
+<body class="dashboard">
+
+<button class="student-menu-toggle" onclick="toggleSidebar()">
+    ☰
+</button>
+
+<div class="student-overlay" onclick="toggleSidebar()"></div>
+
+<aside class="student-sidebar">
+
+    <div class="student-sidebar-top">
+        <div>
+            <h2>Maxdue-Hub</h2>
+            <p>Faculty Portal</p>
         </div>
 
-        <section class="stats">
-            <div class="card blue">
-                <h2>{{ subjects|length }}</h2>
-                <p>Total Subjects</p>
-            </div>
-            <div class="card green">
-                <h2>{{ units|length }}</h2>
-                <p>Total Units</p>
-            </div>
-            <div class="card orange">
-                <h2>{{ total_assignments }}</h2>
-                <p>Total Assignments</p>
-            </div>
-            <div class="card red">
-                <h2>60%</h2>
-                <p>Minimum Attendance</p>
-            </div>
-        </section>
+        <button class="student-sidebar-close"
+                onclick="toggleSidebar()">
+            ✕
+        </button>
+    </div>
 
-        {% for subject in subjects %}
-        <section class="subject-card">
-            <div class="subject-header">
-                <div>
-                    <h2>{{ subject.name }}</h2>
-                    <p class="panel-subtitle" style="margin-bottom:0;">{{ subject.code }} | {{ subject.dept }}</p>
-                </div>
-                <span class="badge">Active Subject</span>
+    <nav class="student-sidebar-nav">
+
+        <a href="/faculty_dashboard" class="active">
+            Dashboard
+        </a>
+
+        <a href="/faculty_profile">
+            Profile
+        </a>
+
+        {% if faculty.is_attendance_admin == 1 %}
+        <a href="/faculty/attendance">
+            Attendance
+        </a>
+        {% endif %}
+
+    </nav>
+
+    <div class="student-sidebar-logout">
+        <a href="/logout">
+            Logout
+        </a>
+    </div>
+
+</aside>
+
+<main class="student-main">
+
+    <!-- HERO -->
+    <section class="hero-section">
+
+        <div>
+
+            <div class="hero-badge">
+                Faculty Portal
             </div>
 
-            {% for unit in units %}
-                {% if unit.subject_id == subject.id %}
-                <div class="unit">
-                    <div>
-                        <h3>{{ unit.name }}</h3>
-                        <p class="unit-text">Create assignments and review submissions.</p>
-                    </div>
-                    <div class="buttons">
-                        <a href="/create_assignment/{{ unit.id }}" class="btn-primary">Create Assignment</a>
-                        <a href="/view_assignments/{{ unit.id }}" class="btn-secondary">View Assignments</a>
-                        <a href="/faculty/attendance" class="btn-success">Update Attendance</a>
-                    </div>
-                </div>
-                {% endif %}
-            {% endfor %}
-        </section>
+            <h1>
+                Welcome back, {{ faculty.name }}
+            </h1>
+
+            <h3>
+                Sagar Institute of Science and Technology Gandhi Nagar, Bhopal
+            </h3>
+
+            <p>
+                Faculty of {{ faculty.department }}
+            </p>
+
+            <div class="hero-buttons">
+
+                <a href="/pending_reviews" class="btn-success">
+                    Pending Reviews ({{ pending_count }})
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- STATS -->
+    <section class="stats">
+
+        <div class="card green">
+            <h2>{{ subjects|length }}</h2>
+            <p>Total Subjects</p>
+        </div>
+
+        <div class="card red">
+            <h2>{{ units|length }}</h2>
+            <p>Total Units</p>
+        </div>
+
+        <div class="card blue">
+            <h2>{{ total_assignments }}</h2>
+            <p>Total Assignments</p>
+        </div>
+
+        <div class="card orange">
+            <h2>60%</h2>
+            <p>Minimum Attendance</p>
+        </div>
+
+    </section>
+
+    <!-- SUBJECTS -->
+    {% for subject in subjects %}
+
+    <section class="subject-card" id="subjects-section">
+
+        <div class="subject-header">
+
+            <div>
+                <h2>{{ subject.name }}</h2>
+                <p>
+                    {{ subject.code }} | {{ subject.dept }}
+                </p>
+            </div>
+
+            <span class="badge">
+                Active Subject
+            </span>
+
+        </div>
+
+        {% for unit in units %}
+        {% if unit.subject_id == subject.id %}
+
+        <div class="unit">
+
+            <div class="unit-left">
+                <h3>{{ unit.name }}</h3>
+                <p>
+                    Create assignments and review submissions.
+                </p>
+            </div>
+
+            <div class="buttons">
+
+                <a href="/create_assignment/{{ unit.id }}"
+                   class="btn-primary">
+                    Create Assignment
+                </a>
+
+                <a href="/view_assignments/{{ unit.id }}"
+                   class="btn-secondary">
+                    View Assignments
+                </a>
+
+            </div>
+
+        </div>
+
+        {% endif %}
         {% endfor %}
-    </main>
+
+    </section>
+
+    {% endfor %}
+
+</main>
+
+<script>
+
+function toggleSidebar() {
+    document.body.classList.toggle(
+        "student-sidebar-open"
+    );
+}
+
+</script>
+
 </body>
 </html>

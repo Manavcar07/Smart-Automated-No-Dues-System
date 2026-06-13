@@ -6,53 +6,173 @@
     <title>Student Submissions | SISTec No Dues</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="dashboard">
-    <aside class="sidebar">
-        <h2>Maxdue-Hub<span>Faculty portal</span></h2>
-        <a href="/faculty_dashboard">Dashboard</a>
-        <a href="/faculty_profile">Profile</a>
-        <a href="/faculty/attendance">Attendance</a>
-        <a href="/logout" class="logout">Logout</a>
+
+    <button class="student-menu-toggle" onclick="toggleSidebar()">
+        ☰
+    </button>
+
+    <div class="student-overlay" onclick="toggleSidebar()"></div>
+
+    <aside class="student-sidebar">
+
+        <div class="student-sidebar-top">
+
+            <div>
+                <h2>Maxdue-Hub</h2>
+                <p>Faculty Portal</p>
+            </div>
+
+            <button class="student-sidebar-close"
+                    onclick="toggleSidebar()">
+                ✕
+            </button>
+
+        </div>
+
+        <nav class="student-sidebar-nav">
+
+            <a href="/faculty_dashboard">
+                Dashboard
+            </a>
+
+            <a href="/faculty_profile">
+                Profile
+            </a>
+
+            <a href="/faculty/attendance">
+                Attendance
+            </a>
+
+        </nav>
+
+        <div class="student-sidebar-logout">
+            <a href="/logout">
+                Logout
+            </a>
+        </div>
+
     </aside>
 
-    <main class="main">
+    <main class="student-main">
+
         <div class="page-header">
+
             <div>
                 <h1>Student Submissions</h1>
                 <p>Open submitted files and mark final approval status.</p>
             </div>
-            <a href="/faculty_dashboard" class="back-btn">Back</a>
+
+            <a href="/faculty_dashboard" class="btn-secondary">
+                Back
+            </a>
+
         </div>
 
         {% if submissions|length == 0 %}
+
             <section class="empty-state">
+
                 <h2>No Submissions Yet</h2>
-                <p>Students have not submitted this assignment yet.</p>
+
+                <p>
+                    Students have not submitted this assignment yet.
+                </p>
+
             </section>
+
         {% else %}
+
             <section class="assignment-container">
+
                 {% for s in submissions %}
+
                 <article class="assignment-card">
+
                     <div class="assignment-info">
+
                         <h3>{{ s.name }}</h3>
-                        <p>AI Suggestion: {{ s.ai_status if s.ai_status else 'Not available' }}</p>
-                        {% if s.status == "approved" %}
-                            <span class="status approved">Final Status: Approved</span>
-                        {% elif s.status == "pending" %}
-                            <span class="status pending">Final Status: Pending</span>
-                        {% else %}
-                            <span class="status rejected">Final Status: Rejected</span>
+
+                        <p>
+                            AI Suggestion:
+                            <strong>{{ s.ai_status }}</strong>
+                        </p>
+
+                        <p>
+                            AI Score:
+                            <strong>{{ s.ai_score }}%</strong>
+                        </p>
+
+                        <p>
+                            Handwritten:
+                            {% if s.is_handwritten == 1 %}
+                                Yes
+                            {% else %}
+                                No
+                            {% endif %}
+                        </p>
+
+                        {% if s.ai_status == "rejected" %}
+                        <p>
+                            <strong>Reason:</strong>
+                            {{ s.ai_reason }}
+                        </p>
                         {% endif %}
+
+                        {% if s.status == "approved" %}
+                            <span class="status approved">
+                                Final Status: Approved
+                            </span>
+
+                        {% elif s.status == "pending" %}
+                            <span class="status pending">
+                                Final Status: Pending
+                            </span>
+
+                        {% else %}
+                            <span class="status rejected">
+                                Final Status: Rejected
+                            </span>
+                        {% endif %}
+
                     </div>
+
                     <div class="assignment-actions">
-                        <a href="/view_submission_file/{{ s.file_path }}" target="_blank" class="btn-primary">View File</a>
-                        <a href="/approve/{{ s.id }}" class="btn-success">Approve</a>
-                        <a href="/reject/{{ s.id }}" class="btn-danger">Reject</a>
+
+                        <a href="/view_submission_file/{{ s.file_path }}"
+                           target="_blank"
+                           class="btn-primary">
+                            View File
+                        </a>
+
+                        <a href="/approve/{{ s.id }}"
+                           class="btn-success">
+                            Approve
+                        </a>
+
+                        <a href="/reject/{{ s.id }}"
+                           class="btn-danger">
+                            Reject
+                        </a>
+
                     </div>
+
                 </article>
+
                 {% endfor %}
+
             </section>
+
         {% endif %}
+
     </main>
+
+    <script>
+        function toggleSidebar() {
+            document.body.classList.toggle(
+                "student-sidebar-open"
+            );
+        }
+    </script>
+
 </body>
 </html>
