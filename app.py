@@ -869,7 +869,29 @@ def faculty_attendance():
         faculty=faculty
     )
     
-#-------- STUDENT PROFILE --------
+# -------- STUDENT PROFILE --------
+@app.route("/profile")
+def student_profile():
+
+    if "user_id" not in session:
+        return redirect("/")
+
+    conn = get_db()
+
+    user = conn.execute("""
+        SELECT *
+        FROM students
+        WHERE id=?
+    """, (session["user_id"],)).fetchone()
+
+    conn.close()
+
+    return render_template(
+        "student/profile.html",
+        user=user
+    )
+    
+#-------- FACULTY PROFILE --------
 @app.route("/faculty_profile")
 def faculty_profile():
 
